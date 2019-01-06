@@ -6,8 +6,5 @@ module.exports = function(app) {
         .post(reminders.ping);
 
     app.route('/schedule')
-        .post(reminders.schedule_sms);
-
-    app.route('/receive')
-        .post(reminders.receive_sms);
+        .post(reminders.schedule);
 };
