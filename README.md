@@ -3,6 +3,8 @@ Backend of the RemindSomeoneElse project
 
 RemindSomeoneElse allows users to schedule a text message to be sent to a target phone number with a message. It is more convenient than other services because it requires no set up. No sign ups or installations required. Just text the RemindSomeoneElse number to schedule a reminder for someone else.
 
+**Please note that RemindSomeoneElse is a personal project and is not a production level service. I cannot gaurentee that the service will always be available, and may from time to time, fail to send messages (e.g. if my Twilio balance runs out or the Heroku server goes down). While I do not have any malicious intent in regards to reading or sending messages, I cannot gaurentee that the 3rd party services are the same.**
+
 ## How do I use it?
 Text the RemindSomeoneElse phone number with a reminder. The request is formatted as `<phone number`>, `<delay in minutes`>, `<message`>. You will receive either a message that indicates that the request was successfully scheduled on an error message with steps on how to fix the request.  
 
