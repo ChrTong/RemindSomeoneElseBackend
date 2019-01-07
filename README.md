@@ -14,3 +14,9 @@ Text the RemindSomeoneElse phone number with a reminder. The request is formatte
 
 ## How does it work?
 When the RemindSomeoneElse phone number receives a text, Twilio receives the response and sends it to the RemindSomeoneElse server. Requests are sent as a HTTP POST request to the NodeJS server that is hosted on Heroku. The request body contains the phone number, delay, and message. If the request is valid, the server schedules a message to be sent after the appropriate delay. It then uses Twilio to send the scheduled reminder.
+
+## What did I use to build it?
+Code and Service
+- Server is written in [node.js](https://nodejs.org/en/)
+- [Heroku](https://dashboard.heroku.com/login) hosts the server
+- The [Twilio](https://www.twilio.com/) service allows SMS messages to be sent and received
