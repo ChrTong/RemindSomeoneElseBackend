@@ -1,7 +1,5 @@
 'use strict';
 
-const SECONDS_TO_MILLISECONDS = 1000;
-const MINIMUM_DELAY_MINUTES = 1;
 const REQUEST_DELIMITER = ',';
 
 // Twilio Initializers
@@ -16,84 +14,57 @@ exports.ping = function(request, response) {
 
 exports.schedule = function(request, response) {
     try {
-        console.log(`Request received: '${JSON.stringify(request.body)}'`);
+        console.log(`${getDateTime()}: Request received: '${JSON.stringify(request.body, null, 2)}'`);
 
         // Request is in the body.body due to Twilio's convention
         var smsRequest = parseSmsRequest(request.body.body);
 
-        console.log(`Parsed SMS request: '${JSON.stringify(smsRequest)}'`);
+        console.log(`Parsed SMS request: '${JSON.stringify(smsRequest, null, 2)}'`);
 
-        validateRequest(smsRequest.message, smsRequest.recepientPhoneNumber, smsRequest.delay);
-        scheduleSms(smsRequest.message, smsRequest.recepientPhoneNumber, smsRequest.delay);
-        var responseMessage = `SMS reminder successfully scheduled. It will be sent to '${smsRequest.recepientPhoneNumber}' after '${smsRequest.delay}' minutes with a message of '${smsRequest.message}'.`;
+        // Validate request parameters
+        validateRequest(smsRequest.message, smsRequest.recepientPhoneNumber, smsRequest.dateTime);
+
+        // Schedule the SMS request
+        scheduleSms(smsRequest.message, smsRequest.recepientPhoneNumber, smsRequest.dateTime);
+
+        // Send a success response back
+        var responseMessage = `SMS reminder successfully scheduled. It will be sent to '${smsRequest.recepientPhoneNumber}' at '${smsRequest.dateTime}' with a message of '${smsRequest.message}'.`;
         returnToTwilio(responseMessage, response);
     } catch (exception) {
-        // TODO check if other error codes (e.g. 500 work)
+        // TODO:check if other error codes (e.g. 500 work)
+        console.log(`EXCEPTION: ${exception}`);
+
         returnToTwilio(exception, response);
     }
 }
 
 // Schedules a SMS text to be sent after a delay (in minutes)
-function scheduleSms(message, recepientPhoneNumber, delay) {
+function scheduleSms(message, recepientPhoneNumber, dateTime) {
+    var delay = calculateDelay(dateTime);
+
+    /* // TODO: remove this hardcoded value
+    delay = 500; */
+
     setTimeout(function() {
         sendSms(message, recepientPhoneNumber);
-    }, delay * SECONDS_TO_MILLISECONDS);
+    }, delay);
 
-    console.log(`SMS message: '${message}' was scheduled with a delay of: '${delay} minutes'. '${getDateTime()}'`);
+    console.log(`${getDateTime()}: SMS message: '${message}' was scheduled to be sent at '${new Date(delay + Date.now())}'.`);
 }
 
 function sendSms(message, recepientPhoneNumber) {
-    TwilioClient.messages
+    console.log(`${getDateTime()}: Sent FAKE SMS to '${recepientPhoneNumber}' with message '${message}'.`);
+    return;
+    
+    /* TwilioClient.messages
         .create({
             body: message,
             from: process.env.TWILIO_PHONE_NUMBER,
             to: recepientPhoneNumber
         })
-        .then(message => console.log(`Sent SMS message: '${message}' to: '${recepientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
-        .done();
-}
-
-// Parses the body of the web request made to the server to interpret the SMS request
-function parseSmsRequest(smsRequest) {
-    // Extract phone number
-    var phoneNumberEndIndex = smsRequest.indexOf(REQUEST_DELIMITER);
-    if (phoneNumberEndIndex < 0) {
-        throw 'Request cannot be sceduled because it is not formatted properly. Proper formatting is <phone number, <delay>, <message>';
-    }
-
-    var recepientPhoneNumber = smsRequest.substring(0, phoneNumberEndIndex).trim();
-
-    // Extract delay
-    smsRequest = smsRequest.substring(phoneNumberEndIndex+1);
-    var delayEndIndex = smsRequest.indexOf(REQUEST_DELIMITER);
-    if (delayEndIndex < 0) {
-        throw 'Request cannot be sceduled because it is not formatted properly. Proper formatting is <phone number, <delay>, <message>';
-    }
-
-    var delay = parseInt(smsRequest.substring(0, delayEndIndex));
-    
-    // Extract message
-    var message = smsRequest.substring(delayEndIndex+1).trim();
-
-    return {
-        recepientPhoneNumber: recepientPhoneNumber,
-        delay: delay,
-        message: message
-    };
-}
-
-function validateRequest(message, recepientPhoneNumber, delay) {
-    if (!isMessageValid(message)) {
-        throw 'Message is invalid. Enter a valid message.';
-    }
-
-    if (!isPhoneNumberValid(recepientPhoneNumber)) {
-        throw 'Phone number is invalid. Enter a valid phone number.';
-    }
-
-    if (!isDelayValid(delay)) {
-        throw 'Delay is invalid. Enter a number of at least 5 minutes.';
-    }
+        .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recepientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
+        .done(); */
+   
 }
 
 // Constructs and sends an appropriate response for Twilio to interpret
@@ -108,19 +79,73 @@ function returnToTwilio(message, response) {
     response.end(responseMessage.toString());
 }
 
-// TODO implement this stub
+// Parses the body of the web request made to the server to interpret the SMS request
+function parseSmsRequest(smsRequest) {
+
+    if (smsRequest === undefined || smsRequest.body === '') {
+        throw 'SMS request is undefined';
+    }
+
+    // Extract phone number
+    var phoneNumberEndIndex = smsRequest.indexOf(REQUEST_DELIMITER);
+    if (phoneNumberEndIndex < 0) {
+        throw 'Request cannot be scheduled because it is not formatted properly. Proper formatting is <phone number>, <month> <day> <year> <hours>:<minutes> <AM/PM>, <message>';
+    }
+
+    var recepientPhoneNumber = smsRequest.substring(0, phoneNumberEndIndex).trim();
+
+    // Extract delay
+    // TODO: implement being able to read the date of the request and schedule it for them, rather than a delay
+    smsRequest = smsRequest.substring(phoneNumberEndIndex+1);
+    var dateTimeEndIndex = smsRequest.indexOf(REQUEST_DELIMITER);
+    if (dateTimeEndIndex < 0) {
+        throw 'Request cannot be scheduled because it is not formatted properly. Proper formatting is <phone number, <month> <day> <year> <hours>:<minutes> <AM/PM>, <message>';
+    }
+
+    var dateTime = smsRequest.substring(0, dateTimeEndIndex).trim();
+    
+    // Extract message
+    var message = smsRequest.substring(dateTimeEndIndex+1).trim();
+
+    return {
+        recepientPhoneNumber: recepientPhoneNumber,
+        dateTime: dateTime,
+        message: message
+    };
+}
+
+function validateRequest(message, recepientPhoneNumber, dateTime) {
+    if (!isMessageValid(message)) {
+        throw 'Message is invalid. Enter a valid message.';
+    }
+
+    if (!isPhoneNumberValid(recepientPhoneNumber)) {
+        throw 'Phone number is invalid. Enter a valid phone number.';
+    }
+
+    if (!isDateTimeValid(dateTime)) {
+        throw 'Date time is invalid. Enter a date time in the format of <month> <day> <year> <hours>:<minutes> <AM/PM>.';
+    }
+}
+
+// Calculates the delay in 'ms'
+function calculateDelay(dateTime) {
+    if (!isDateTimeValid(dateTime)) {
+        // TODO: throw 
+    }
+
+    var delay = new Date(dateTime).getTime() - Date.now();
+    return delay;
+}
+
+// TODO: implement this stub
 function isPhoneNumberValid(phoneNumber) {
     return true;
 }
 
-function isDelayValid(delay) {
-    if (isNaN(delay) || delay === undefined || delay === '') {
-        return false;
-    } else if (delay < MINIMUM_DELAY_MINUTES) {
-        return false;
-    } else {
-        return true;
-    }
+function isDateTimeValid(dateTime) {
+    var delay = new Date(dateTime).getTime();
+    return !(delay == undefined || isNaN(delay));
 }
 
 function isMessageValid(message) {
@@ -132,6 +157,6 @@ function isMessageValid(message) {
 }
 
 function getDateTime() {
-    var currentdate = new Date();
-    return `${currentdate.getHours()}:${currentdate.getMinutes()}:${currentdate.getSeconds()}`;
+    var currentDate = new Date();
+    return `${currentDate.getHours()}:${currentDate.getMinutes()}:${currentDate.getSeconds()}`;
 }

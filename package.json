@@ -10,9 +10,11 @@
   "author": "chrton",
   "license": "ISC",
   "devDependencies": {
+    "mongoose": "^5.4.7",
     "nodemon": "^1.18.9"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^6.2.0",
     "express": "^4.16.4",
     "twilio": "^3.26.1"
