@@ -22,13 +22,13 @@ exports.schedule = function(request, response) {
         console.log(`Parsed SMS request: '${JSON.stringify(smsRequest, null, 2)}'`);
 
         // Validate request parameters
-        validateRequest(smsRequest.message, smsRequest.recepientPhoneNumber, smsRequest.dateTime);
+        validateRequest(smsRequest.message, smsRequest.recipientPhoneNumber, smsRequest.dateTime);
 
         // Schedule the SMS request
-        scheduleSms(smsRequest.message, smsRequest.recepientPhoneNumber, smsRequest.dateTime);
+        scheduleSms(smsRequest.message, smsRequest.recipientPhoneNumber, smsRequest.dateTime);
 
         // Send a success response back
-        var responseMessage = `SMS reminder successfully scheduled. It will be sent to '${smsRequest.recepientPhoneNumber}' at '${smsRequest.dateTime}' with a message of '${smsRequest.message}'.`;
+        var responseMessage = `SMS reminder successfully scheduled. It will be sent to '${smsRequest.recipientPhoneNumber}' at '${smsRequest.dateTime}' with a message of '${smsRequest.message}'.`;
         returnToTwilio(responseMessage, response);
     } catch (exception) {
         // TODO:check if other error codes (e.g. 500 work)
@@ -39,31 +39,30 @@ exports.schedule = function(request, response) {
 }
 
 // Schedules a SMS text to be sent after a delay (in minutes)
-function scheduleSms(message, recepientPhoneNumber, dateTime) {
+function scheduleSms(message, recipientPhoneNumber, dateTime) {
     var delay = calculateDelay(dateTime);
 
     /* // TODO: remove this hardcoded value
     delay = 500; */
 
     setTimeout(function() {
-        sendSms(message, recepientPhoneNumber);
+        sendSms(message, recipientPhoneNumber);
     }, delay);
 
     console.log(`${getDateTime()}: SMS message: '${message}' was scheduled to be sent at '${new Date(delay + Date.now())}'.`);
 }
 
-function sendSms(message, recepientPhoneNumber) {
-    console.log(`${getDateTime()}: Sent FAKE SMS to '${recepientPhoneNumber}' with message '${message}'.`);
-    return;
+function sendSms(message, recipientPhoneNumber) {
+    console.log(`${getDateTime()}: Sent FAKE SMS to '${recipientPhoneNumber}' with message '${message}'.`);
     
-    /* TwilioClient.messages
+    TwilioClient.messages
         .create({
             body: message,
             from: process.env.TWILIO_PHONE_NUMBER,
-            to: recepientPhoneNumber
+            to: recipientPhoneNumber
         })
-        .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recepientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
-        .done(); */
+        .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recipientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
+        .done();
    
 }
 
@@ -92,7 +91,7 @@ function parseSmsRequest(smsRequest) {
         throw 'Request cannot be scheduled because it is not formatted properly. Proper formatting is <phone number>, <month> <day> <year> <hours>:<minutes> <AM/PM>, <message>';
     }
 
-    var recepientPhoneNumber = smsRequest.substring(0, phoneNumberEndIndex).trim();
+    var recipientPhoneNumber = smsRequest.substring(0, phoneNumberEndIndex).trim();
 
     // Extract delay
     // TODO: implement being able to read the date of the request and schedule it for them, rather than a delay
@@ -108,18 +107,18 @@ function parseSmsRequest(smsRequest) {
     var message = smsRequest.substring(dateTimeEndIndex+1).trim();
 
     return {
-        recepientPhoneNumber: recepientPhoneNumber,
+        recipientPhoneNumber: recipientPhoneNumber,
         dateTime: dateTime,
         message: message
     };
 }
 
-function validateRequest(message, recepientPhoneNumber, dateTime) {
+function validateRequest(message, recipientPhoneNumber, dateTime) {
     if (!isMessageValid(message)) {
         throw 'Message is invalid. Enter a valid message.';
     }
 
-    if (!isPhoneNumberValid(recepientPhoneNumber)) {
+    if (!isPhoneNumberValid(recipientPhoneNumber)) {
         throw 'Phone number is invalid. Enter a valid phone number.';
     }
 
