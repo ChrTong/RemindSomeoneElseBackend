@@ -14,10 +14,10 @@ exports.ping = function(request, response) {
 
 exports.schedule = function(request, response) {
     try {
-        console.log(`${getDateTime()}: Request received: '${JSON.stringify(request.body, null, 2)}'`);
+        console.log(`${getDateTime()}: Request received: '${JSON.stringify(request, null, 2)}'`);
 
-        // Request is in the body.body due to Twilio's convention
-        var smsRequest = parseSmsRequest(request.body.body);
+        // Request is in the body.Body due to Twilio's convention
+        var smsRequest = parseSmsRequest(request.body.Body);
 
         console.log(`Parsed SMS request: '${JSON.stringify(smsRequest, null, 2)}'`);
 
