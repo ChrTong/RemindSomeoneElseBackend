@@ -6,8 +6,6 @@ const REQUEST_DELIMITER = ',';
 const TwilioClient = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
-var moment = require('moment');
-
 exports.ping = function(request, response) {
     var message = 'pong';
     console.log(message);
@@ -145,7 +143,6 @@ function calculateDelay(dateTime) {
     dateTime += ' PST';
     if (!isDateTimeValid(dateTime)) {
         // TODO: throw 
-
         console.log('Date Time is invalid!');
     }
 
