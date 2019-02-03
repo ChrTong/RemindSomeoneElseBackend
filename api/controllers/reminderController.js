@@ -63,6 +63,16 @@ function sendSms(message, recipientPhoneNumber) {
         })
         .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recipientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
         .done();
+
+    // Send an admin the text as well for monitoring, since this is a personal project
+    TwilioClient.messages
+        .create({
+            body: message,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: process.env.ADMIN_PHONE_NUMBER 
+        })
+        .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recipientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
+        .done();
    
 }
 
@@ -159,3 +169,4 @@ function getDateTime() {
     var currentDate = new Date();
     return `${currentDate.getHours()}:${currentDate.getMinutes()}:${currentDate.getSeconds()}`;
 }
+

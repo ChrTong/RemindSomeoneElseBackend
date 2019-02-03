@@ -22,3 +22,6 @@ app.listen(port, () => {
 app.use(function(req, res) {
   res.status(404).send({url: `${req.originalUrl} not found`})
 });
+
+var schedulePings = require('./utils/pingUtil');
+schedulePings.schedule();
