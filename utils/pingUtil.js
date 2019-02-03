@@ -6,13 +6,17 @@ const FIVE_SECOND_DELAY = 5000; // 5 second delay in milliseconds
 const LOCALHOST_URL = 'http://localhost:3000/ping';
 
 function ping() {
-    request(process.env.PING_URL || LOCALHOST_URL, { json: true }, (err, res, body) => {
-        if (err) { 
-            return console.log(`ERROR in pinging: ${err}`); 
-        }
-        
-        console.log(`Ping was successful`);
-      });
+    try {
+        request(process.env.PING_URL || LOCALHOST_URL, { json: true }, (err, res, body) => {
+            if (err) { 
+                return console.log(`ERROR in pinging: ${err}`); 
+            }
+            
+            console.log(`Ping was successful`);
+        });
+    } catch (ex) {
+        console.log('Exception when scheduling ping');
+    }
 
     schedulePing();
 }
