@@ -67,7 +67,7 @@ function sendSms(message, recipientPhoneNumber) {
     // Send an admin the text as well for monitoring, since this is a personal project
     TwilioClient.messages
         .create({
-            body: message,
+            body: `ADMIN MESSAGE: ${message}`,
             from: process.env.TWILIO_PHONE_NUMBER,
             to: process.env.ADMIN_PHONE_NUMBER 
         })
