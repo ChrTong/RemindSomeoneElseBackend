@@ -6,6 +6,8 @@ const REQUEST_DELIMITER = ',';
 const TwilioClient = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
+var moment = require('moment');
+
 exports.ping = function(request, response) {
     var message = 'pong';
     console.log(message);
@@ -53,9 +55,9 @@ function scheduleSms(message, recipientPhoneNumber, dateTime) {
 }
 
 function sendSms(message, recipientPhoneNumber) {
-    console.log(`${getDateTime()}: Sent FAKE SMS to '${recipientPhoneNumber}' with message '${message}'.`);
+    // console.log(`${getDateTime()}: Sent FAKE SMS to '${recipientPhoneNumber}' with message '${message}'.`);
     
-    TwilioClient.messages
+    /* TwilioClient.messages
         .create({
             body: message,
             from: process.env.TWILIO_PHONE_NUMBER,
@@ -72,8 +74,7 @@ function sendSms(message, recipientPhoneNumber) {
             to: process.env.ADMIN_PHONE_NUMBER 
         })
         .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recipientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
-        .done();
-   
+        .done(); */
 }
 
 // Constructs and sends an appropriate response for Twilio to interpret
@@ -139,11 +140,18 @@ function validateRequest(message, recipientPhoneNumber, dateTime) {
 
 // Calculates the delay in 'ms'
 function calculateDelay(dateTime) {
+    dateTime += ' PST';
     if (!isDateTimeValid(dateTime)) {
         // TODO: throw 
+
+        console.log('Date Time is invalid!');
     }
 
     var delay = new Date(dateTime).getTime() - Date.now();
+
+    console.log(`Date Time Now: ${new Date(Date.now()).toString()}`)
+    console.log(`Date Time Trg: ${new Date(new Date(dateTime).getTime()).toString()}`);
+
     return delay;
 }
 
