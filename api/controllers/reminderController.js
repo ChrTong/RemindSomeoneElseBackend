@@ -55,26 +55,28 @@ function scheduleSms(message, recipientPhoneNumber, dateTime) {
 }
 
 function sendSms(message, recipientPhoneNumber) {
-    // console.log(`${getDateTime()}: Sent FAKE SMS to '${recipientPhoneNumber}' with message '${message}'.`);
-    
-    /* TwilioClient.messages
-        .create({
-            body: message,
-            from: process.env.TWILIO_PHONE_NUMBER,
-            to: recipientPhoneNumber
-        })
-        .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recipientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
-        .done();
+    if (process.env.ENV === 'dev') {
+        console.log(`${getDateTime()}: FAKE SMS sent to '${recipientPhoneNumber}' with message '${message}'`);
+    } else {
+        TwilioClient.messages
+            .create({
+                body: message,
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to: recipientPhoneNumber
+            })
+            .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recipientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
+            .done();
 
-    // Send an admin the text as well for monitoring, since this is a personal project
-    TwilioClient.messages
-        .create({
-            body: `ADMIN MESSAGE: ${message}`,
-            from: process.env.TWILIO_PHONE_NUMBER,
-            to: process.env.ADMIN_PHONE_NUMBER 
-        })
-        .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recipientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
-        .done(); */
+        // Send an admin the text as well for monitoring, since this is a personal project
+        TwilioClient.messages
+            .create({
+                body: `ADMIN MESSAGE: ${message}`,
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to: process.env.ADMIN_PHONE_NUMBER 
+            })
+            .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recipientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
+            .done();
+    }
 }
 
 // Constructs and sends an appropriate response for Twilio to interpret
