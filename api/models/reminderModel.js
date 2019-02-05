@@ -3,8 +3,8 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var ReminderSchema = new Schema({
-    'dateTime': {
-        type: 'String',
+    'dateTime': { 
+        type: 'String', // TODO: change this to a date time object?
         required: 'The date time of the scheduled time'
     },
 

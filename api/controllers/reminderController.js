@@ -1,6 +1,7 @@
 'use strict';
 
 const REQUEST_DELIMITER = ',';
+var SessionController = require('../controllers/sessionController');
 
 // Twilio Initializers
 const TwilioClient = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -36,7 +37,21 @@ exports.schedule = function(request, response) {
 
         returnToTwilio(exception, response);
     }
-}
+};
+
+exports.initializeSessions = function() {
+    console.log('Beginning to load reminders from MongoDB');
+
+    SessionController.loadAll((reminders) => {
+        reminders.forEach(function(reminder) {
+            scheduleSms(reminder.message, reminder.recipientPhoneNumber, reminder.dateTime);
+        });
+    });
+};
+
+// Initialize sessions on startup
+exports.initializeSessions();
+
 
 // Schedules a SMS text to be sent after a delay (in minutes)
 function scheduleSms(message, recipientPhoneNumber, dateTime) {
@@ -49,7 +64,9 @@ function scheduleSms(message, recipientPhoneNumber, dateTime) {
         sendSms(message, recipientPhoneNumber);
     }, delay);
 
-    console.log(`${getDateTime()}: SMS message: '${message}' was scheduled to be sent at '${new Date(delay + Date.now())}'.`);
+    SessionController.save(recipientPhoneNumber, dateTime, message, () => {
+        console.log(`${getDateTime()}: SMS message: '${message}' was scheduled to be sent at '${new Date(delay + Date.now())}'.`);
+    });
 }
 
 function sendSms(message, recipientPhoneNumber) {
@@ -63,7 +80,9 @@ function sendSms(message, recipientPhoneNumber) {
                 to: recipientPhoneNumber
             })
             .then(message => console.log(`Sent SMS message: '${JSON.stringify(message, null, 2)}' to: '${recipientPhoneNumber}' with SID: '${message.sid}' at '${getDateTime()}'`))
-            .done();
+            .done(() => {
+                SessionController.delete(recipientPhoneNumber, message);
+            });
 
         // Send an admin the text as well for monitoring, since this is a personal project
         TwilioClient.messages
@@ -91,7 +110,6 @@ function returnToTwilio(message, response) {
 
 // Parses the body of the web request made to the server to interpret the SMS request
 function parseSmsRequest(smsRequest) {
-
     if (smsRequest === undefined || smsRequest.body === '') {
         throw 'SMS request is undefined';
     }
@@ -140,7 +158,7 @@ function validateRequest(message, recipientPhoneNumber, dateTime) {
 
 // Calculates the delay in 'ms'
 function calculateDelay(dateTime) {
-    dateTime += ' PST';
+    dateTime += ' PST'; // TODO: add a conditional check if there is a time zone, and then append PST as default if there isnt
     if (!isDateTimeValid(dateTime)) {
         // TODO: throw 
         console.log('Date Time is invalid!');

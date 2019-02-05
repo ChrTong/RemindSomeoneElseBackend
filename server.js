@@ -3,6 +3,9 @@ require('dotenv').config()
 var express = require('express'),
   app = express(),
   port = process.env.PORT,
+  mongodbURI = process.env.MONGODB_URI,
+  mongoose = require('mongoose'),
+  Reminder = require('./api/models/reminderModel'),
   bodyParser = require('body-parser'),
   cors = require('cors');
 
@@ -11,6 +14,11 @@ app.use(cors());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+mongoose.Promise = global.Promise;
+mongoose.connect(mongodbURI, { useNewUrlParser: true });
+
+console.log(`MongoDB connected on ${mongodbURI}`);
 
 var routes = require('./api/routes/reminderRoutes');
 routes(app);
